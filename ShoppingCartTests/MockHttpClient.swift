@@ -8,15 +8,15 @@
 import Foundation
 @testable import ShoppingCart
 
-extension LoadingState: @retroactive Equatable {
-    public static func == (lhs: LoadingState, rhs: LoadingState) -> Bool {
+extension LoadingState: @retroactive Equatable where T: Equatable {
+    public static func == (lhs: LoadingState<T>, rhs: LoadingState<T>) -> Bool {
         switch (lhs, rhs) {
         case (.initial, .initial):
             return true
         case (.loading, .loading):
             return true
-        case let (.loaded(lhsProducts), .loaded(rhsProducts)):
-            return lhsProducts == rhsProducts
+        case let (.loaded(lhsValue), .loaded(rhsValue)):
+            return lhsValue == rhsValue
         case let (.failed(lhsError), .failed(rhsError)):
             return lhsError.localizedDescription == rhsError.localizedDescription
         default:

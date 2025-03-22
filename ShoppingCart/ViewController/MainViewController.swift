@@ -84,35 +84,31 @@ class MainViewController: UIViewController {
         dataSource.apply(snapshot, animatingDifferences: animation)
     }
 
-    private func updateUI(for state: LoadingState) {
+    private func updateUI(for state: ProductLoadingState) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             switch state {
             case .initial:
-                self.tableView.isHidden = true
-                self.activityIndicator.stopAnimating()
+                setLoadingState(isLoading: false)
                 self.errorLabel.isHidden = true
                 self.retryButton.isHidden = true
                 self.setupSnapshot()
                 self.updateBuyButtonState()
 
             case .loading:
-                self.tableView.isHidden = true
-                self.activityIndicator.startAnimating()
+                setLoadingState(isLoading: true)
                 self.errorLabel.isHidden = true
                 self.retryButton.isHidden = true
 
             case let .loaded(products):
-                self.tableView.isHidden = false
-                self.activityIndicator.stopAnimating()
+                setLoadingState(isLoading: false)
                 self.errorLabel.isHidden = true
                 self.retryButton.isHidden = true
                 self.updateSnapshot(products: products)
                 self.updateBuyButtonState()
 
             case let .failed(error):
-                self.tableView.isHidden = true
-                self.activityIndicator.stopAnimating()
+                self.setLoadingState(isLoading: false)
                 self.errorLabel.text = "Error: \(error.localizedDescription)"
                 self.errorLabel.isHidden = false
                 self.retryButton.isHidden = false
@@ -133,7 +129,6 @@ class MainViewController: UIViewController {
                 self.buyButton.alpha = 0.5
 
             case let .purchased(response):
-                self.updateBuyButtonState()
                 self.activityIndicator.stopAnimating()
                 self.showAlert(title: "Success", message: response.message)
                 self.clearCart()
@@ -142,13 +137,27 @@ class MainViewController: UIViewController {
                 self.updateBuyButtonState()
 
             case let .failed(error):
-                self.updateBuyButtonState()
                 self.activityIndicator.stopAnimating()
                 self.showAlert(title: "Error", message: error.localizedDescription)
                 self.updateBuyButtonState()
             }
         }
     }
+    private func setLoadingState(isLoading: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            self.activityIndicator.isHidden = !isLoading
+            self.tableView.isHidden = isLoading
+            
+            if isLoading {
+                self.activityIndicator.startAnimating()
+            } else {
+                self.activityIndicator.stopAnimating()
+            }
+        }
+    }
+
 
     private func updateBuyButtonState() {
         guard let viewModel = viewModel else { return }

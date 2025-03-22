@@ -6,12 +6,14 @@
 //
 import Foundation
 
-enum LoadingState {
+enum LoadingState<T> {
     case initial
     case loading
-    case loaded([ProductToSell])
+    case loaded(T)
     case failed(Error)
 }
+
+typealias ProductLoadingState = LoadingState<[ProductToSell]>
 
 enum PurchaseState {
     case initial
@@ -24,9 +26,9 @@ protocol ViewModelProtocol: AnyObject {
     var products: [ProductToSell] { get }
     var isCartEmpty: Bool { get }
     var isBuyButtonEnable: Bool { get }
-    var loadingState: LoadingState { get }
+    var loadingState: ProductLoadingState { get }
     var purchaseState: PurchaseState { get }
-    var onStateChange: ((LoadingState) -> Void)? { get set }
+    var onStateChange: ((ProductLoadingState) -> Void)? { get set }
     var onPurchaseStateChange: ((PurchaseState) -> Void)? { get set }
     func updateQuantity(for productId: String, newValue: Int)
     func getQuantity(for productId: String) -> Int
@@ -49,7 +51,7 @@ class ViewModel: ViewModelProtocol {
         calculateTotalSum() > 0
     }
 
-    private(set) var loadingState: LoadingState = .initial {
+    private(set) var loadingState: ProductLoadingState = .initial {
         didSet {
             onStateChange?(loadingState)
         }
@@ -61,7 +63,7 @@ class ViewModel: ViewModelProtocol {
         }
     }
 
-    var onStateChange: ((LoadingState) -> Void)?
+    var onStateChange: ((ProductLoadingState) -> Void)?
     var onPurchaseStateChange: ((PurchaseState) -> Void)?
 
     init(networkClientFactory: HttpClientFactoryProtocol) {
